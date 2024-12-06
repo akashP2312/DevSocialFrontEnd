@@ -1,21 +1,30 @@
 import axios from "axios";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
 import { Navigate, useNavigate } from "react-router-dom";
+import { addUser } from "../utils/userSlice";
+import { API_DOMAIN_URL } from "../utils/constants";
 
 const Login = () => {
     const [userName, setUserName] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+
     const navigate = useNavigate();
+    const dispatch = useDispatch();
 
     const onLoginClick = async () => {
-        console.log('userName ' + userName + ' ' + password);
-        const userData = await axios.post("http://localhost:7777/login", {
-            "emailId": userName,
-            "password": password
-        }, { withCredentials: true });
-        console.log(userData.data);
-        navigate('/feed');
-
+        try {
+            const userData = await axios.post(`${API_DOMAIN_URL}/login`, {
+                "emailId": userName,
+                "password": password
+            }, { withCredentials: true });
+            console.log(userData.data);
+            dispatch(addUser(userData.data));
+            navigate('/feed');
+        } catch (err) {
+            setError(err.response.data)
+        }
     }
 
     return (
@@ -44,8 +53,9 @@ const Login = () => {
                             d="M14 6a4 4 0 0 1-4.899 3.899l-1.955 1.955a.5.5 0 0 1-.353.146H5v1.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-2.293a.5.5 0 0 1 .146-.353l3.955-3.955A4 4 0 1 1 14 6Zm-4-2a.75.75 0 0 0 0 1.5.5.5 0 0 1 .5.5.75.75 0 0 0 1.5 0 2 2 0 0 0-2-2Z"
                             clipRule="evenodd" />
                     </svg>
-                    <input type="password" className="grow" onChange={(e) => setPassword(e.target.value)} />
+                    <input type="password" placeholder="password" className="grow" onChange={(e) => setPassword(e.target.value)} />
                 </label>
+                {error && <div><span className="text-error"> {error}</span></div>}
                 <div className="card-actions mt-8 justify-center">
                     <button className="btn w-32" onClick={onLoginClick}>Login</button>
                 </div>
